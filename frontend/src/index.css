@@ -1,0 +1,10 @@
+/* frontend/src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Tambahan styling dasar untuk body */
+body {
+    background-color: #f7f7f7; 
+    color: #333333; 
+}

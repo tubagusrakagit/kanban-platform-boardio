@@ -1,0 +1,43 @@
+### 1. Register User Baru (Admin)
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+    "name": "Super Admin",
+    "email": "admin@kanban.com",
+    "password": "testingpassword123",
+    "role": "admin"
+}
+
+### 2. Login User (Uji Otentikasi)
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+    "email": "admin@kanban.com",
+    "password": "testingpassword123" 
+}
+
+### 3. request Buat Proyek
+POST http://localhost:5000/api/projects
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5M2JkMTZlNWM3OGMyNmJjNjIyMzhmMCIsImlhdCI6MTc2NTUyODUzOSwiZXhwIjoxNzY4MTIwNTM5fQ.8itN0_Gw6JjA8FjNbnKvrFmaEKNSOq7aY9PFC6EiXb8
+
+{
+    "name": "Proyek Kanban Utama",
+    "description": "Pengembangan platform manajemen proyek."
+}
+
+### 4. Buat Tugas Baru (POST /api/tasks)
+POST http://localhost:5000/api/tasks
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5M2JkMTZlNWM3OGMyNmJjNjIyMzhmMCIsImlhdCI6MTc2NTUyOTI4NSwiZXhwIjoxNzY4MTIxMjg1fQ.JCeQgR4FXuctJA1QrgujoOP3OIyFmFJAqQhd85dqsf4
+# Contoh token: Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5M2JkMTZlNWM3OGMyNmJjNjIyMzhmMCIsImlhdCI6MTc2NTUyODUzOSwiZXhwIjoxNzY4MTIwNTM5fQ.8itN0_Gw6JjA8FjNbnKvrFmaEKNSOq7aY9PFC6EiXb8
+
+{
+    "project": "693bd6f22b5907421b675400", 
+    "title": "Setup React Frontend",
+    "description": "Inisialisasi aplikasi React dan instalasi pustaka dnd.",
+    "priority": "high",
+    "status": "to-do" 
+}

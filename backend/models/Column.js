@@ -22,9 +22,7 @@ const columnSchema = mongoose.Schema({
     },
 });
 
-// Opsional: Buat Compound Index agar 'columnId' unik HANYA dalam satu proyek
-// Artinya: Proyek A boleh punya 'todo', Proyek B boleh punya 'todo'.
-// Tapi Proyek A tidak boleh punya DUA 'todo'.
+
 columnSchema.index({ project: 1, columnId: 1 }, { unique: true });
 
 const Column = mongoose.model('Column', columnSchema);

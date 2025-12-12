@@ -4,7 +4,6 @@ const Project = require('../models/Project');
 const Task = require('../models/Task');
 const Column = require('../models/Column');
 
-// Fungsi bantuan untuk membuat kolom default
 const createDefaultColumns = async (projectId) => {
     try {
         const defaultColumns = [
@@ -19,9 +18,7 @@ const createDefaultColumns = async (projectId) => {
     }
 };
 
-// @desc    Mendapatkan Board (Kolom dan Tugas) berdasarkan Project ID
-// @route   GET /api/boards/:projectId
-// @access  Private (hanya member/owner)
+
 const getBoard = asyncHandler(async (req, res) => {
     const projectId = req.params.projectId;
 
@@ -80,9 +77,7 @@ const getBoard = asyncHandler(async (req, res) => {
     }
 });
 
-// @desc    Membuat Task Baru
-// @route   POST /api/boards/:projectId/tasks
-// @access  Private
+
 const createTask = asyncHandler(async (req, res) => {
     const { title, description, assignedTo, priority } = req.body;
     const projectId = req.params.projectId;
@@ -113,9 +108,7 @@ const createTask = asyncHandler(async (req, res) => {
     res.status(201).json(task);
 });
 
-// @desc    Memindahkan Task (Untuk Drag-and-Drop)
-// @route   PUT /api/boards/:projectId/tasks/:taskId/move
-// @access  Private
+
 const moveTask = asyncHandler(async (req, res) => {
     const { newStatus } = req.body;
     const { taskId, projectId } = req.params;
@@ -149,9 +142,7 @@ const moveTask = asyncHandler(async (req, res) => {
     }
 });
 
-// @desc    Update detail tugas
-// @route   PUT /api/boards/:projectId/tasks/:taskId
-// @access  Private
+
 const updateTask = asyncHandler(async (req, res) => {
     const { taskId, projectId } = req.params;
     
@@ -187,9 +178,7 @@ const updateTask = asyncHandler(async (req, res) => {
     }
 });
 
-// @desc    Hapus tugas
-// @route   DELETE /api/boards/:projectId/tasks/:taskId
-// @access  Private
+
 const deleteTask = asyncHandler(async (req, res) => {
     const { taskId, projectId } = req.params;
     

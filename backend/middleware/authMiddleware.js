@@ -3,7 +3,6 @@ const jwt = require('jsonwebtoken');
 const asyncHandler = require('express-async-handler');
 const User = require('../models/User');
 
-// Middleware untuk melindungi rute (memastikan pengguna sudah login)
 const protect = asyncHandler(async (req, res, next) => {
   let token;
 
@@ -20,7 +19,6 @@ const protect = asyncHandler(async (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
       // 3. Ambil data user dari database (tanpa password)
-      // Data user disimpan di req.user, dan ini dapat diakses di controller berikutnya
       req.user = await User.findById(decoded.id).select('-password');
 
       next(); // Lanjut ke controller/rute berikutnya
@@ -38,8 +36,7 @@ const protect = asyncHandler(async (req, res, next) => {
   }
 });
 
-// Middleware untuk Otorisasi Berbasis Peran (RBAC)
-// Contoh penggunaan: authorize('admin') atau authorize(['manager', 'admin'])
+
 const authorize = (roles = []) => {
   // Jika 'roles' adalah string, ubah menjadi array
   if (typeof roles === 'string') {
@@ -53,9 +50,9 @@ const authorize = (roles = []) => {
       throw new Error('Tidak terautentikasi. Silakan login.');
     }
     
-    // 2. Cek apakah peran pengguna termasuk dalam array peran yang diizinkan
+    
     if (roles.length && !roles.includes(req.user.role)) {
-      res.status(403); // Forbidden
+      res.status(403);
       throw new Error(`Akses ditolak. Hanya pengguna dengan peran: ${roles.join(', ')} yang diizinkan.`);
     }
 

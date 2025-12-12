@@ -24,7 +24,6 @@ UserSchema.pre('save', async function (next) {
 
 // >>> Tambahkan Method untuk Membandingkan Password <<<
 UserSchema.methods.matchPassword = async function (enteredPassword) {
-  // Membandingkan password yang dimasukkan dengan password yang di-hash di DB
   return await bcrypt.compare(enteredPassword, this.password);
 };
 

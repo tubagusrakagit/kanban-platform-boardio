@@ -80,6 +80,9 @@ const KanbanBoard = () => {
             );
             return newTasks;
         });
+        if (selectedTask && selectedTask._id === updatedTask._id) {
+            setSelectedTask(updatedTask);
+        }
     };
 
     const handleTaskDeleted = (taskId) => {

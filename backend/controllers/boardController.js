@@ -234,6 +234,78 @@ const deleteTask = asyncHandler(async (req, res) => {
     }
 });
 
+const addTaskComment = asyncHandler(async (req, res) => {
+    const { taskId } = req.params;
+    const { text } = req.body;
+
+    // Validasi input
+    if (!text) {
+        res.status(400);
+        throw new Error('Isi komentar tidak boleh kosong');
+    }
+
+    const task = await Task.findById(taskId);
+
+    if (task) {
+        // Buat object komentar
+        const comment = {
+            text,
+            user: req.user._id, // Ambil ID user yang sedang login
+        };
+
+        task.comments.push(comment); // Masukkan ke array
+        await task.save();
+
+        // Kita perlu populate user agar frontend bisa menampilkan nama & avatar penomen
+        const updatedTask = await Task.findById(taskId)
+            .populate('assignedTo', 'name')
+            .populate('comments.user', 'name email'); // Populate user di dalam comments
+
+        res.status(201).json(updatedTask);
+    } else {
+        res.status(404);
+        throw new Error('Task tidak ditemukan');
+    }
+});
+
+// ------------------------------------------------------------------
+// FITUR BARU: HAPUS KOMENTAR
+// ------------------------------------------------------------------
+const deleteTaskComment = asyncHandler(async (req, res) => {
+    const { taskId, commentId } = req.params;
+
+    const task = await Task.findById(taskId);
+
+    if (task) {
+        // Cari komentar
+        const comment = task.comments.id(commentId);
+
+        if (!comment) {
+            res.status(404);
+            throw new Error('Komentar tidak ditemukan');
+        }
+
+        // Pastikan yang menghapus adalah pemilik komentar ATAU pemilik project (Opsional, saat ini kita buat pemilik komen saja)
+        if (comment.user.toString() !== req.user._id.toString()) {
+            res.status(401);
+            throw new Error('Anda tidak berhak menghapus komentar ini');
+        }
+
+        // Hapus komentar dari array
+        comment.deleteOne(); 
+        await task.save();
+
+        const updatedTask = await Task.findById(taskId)
+            .populate('assignedTo', 'name')
+            .populate('comments.user', 'name email');
+
+        res.json(updatedTask);
+    } else {
+        res.status(404);
+        throw new Error('Task tidak ditemukan');
+    }
+});
+
 
 module.exports = {
     getBoard,
@@ -241,4 +313,6 @@ module.exports = {
     moveTask,
     updateTask, 
     deleteTask, 
+    addTaskComment,   
+    deleteTaskComment,
 };

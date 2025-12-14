@@ -94,6 +94,36 @@ const deleteTask = async (projectId, taskId) => {
         throw error;
     }
 };
+// =======================================================
+// FUNGSI 6: TAMBAH KOMENTAR
+// =======================================================
+const addComment = async (projectId, taskId, text) => {
+    try {
+        const response = await axios.post(
+            `${API_URL}/${projectId}/tasks/${taskId}/comments`, 
+            { text }, 
+            getAuthHeaders()
+        );
+        return response.data; // Mengembalikan task terbaru lengkap dengan komen
+    } catch (error) {
+        throw error;
+    }
+};
+
+// =======================================================
+// FUNGSI 7: HAPUS KOMENTAR
+// =======================================================
+const deleteComment = async (projectId, taskId, commentId) => {
+    try {
+        const response = await axios.delete(
+            `${API_URL}/${projectId}/tasks/${taskId}/comments/${commentId}`, 
+            getAuthHeaders()
+        );
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
 
 const boardService = {
     getBoardData,
@@ -101,6 +131,8 @@ const boardService = {
     moveTask,
     updateTask, 
     deleteTask, 
+    addComment,    // <--- Export
+    deleteComment,
 };
 
 export default boardService;

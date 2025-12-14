@@ -1,6 +1,13 @@
 // backend/models/Task.js
 const mongoose = require('mongoose');
 
+const commentSchema = mongoose.Schema({
+    text: { type: String, required: true },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+}, {
+    timestamps: true // Agar otomatis ada createdAt (jam berapa komen dibuat)
+});
+
 const taskSchema = mongoose.Schema(
     {
         project: {
@@ -37,6 +44,7 @@ const taskSchema = mongoose.Schema(
         type: Date, 
         default: null
         },
+        comments: [commentSchema]
         
     },
     {

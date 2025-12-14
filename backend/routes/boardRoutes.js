@@ -1,8 +1,16 @@
 // backend/routes/boardRoutes.js
 const express = require('express');
 const router = express.Router();
-const { getBoard, createTask, moveTask, updateTask, deleteTask } = require('../controllers/boardController');
 const { protect } = require('../middleware/authMiddleware');
+const { 
+    getBoard, 
+    createTask, 
+    moveTask, 
+    updateTask, 
+    deleteTask,
+    addTaskComment,    
+    deleteTaskComment  
+} = require('../controllers/boardController');
 
 
 // Rute untuk mendapatkan seluruh board
@@ -18,5 +26,8 @@ router.route('/:projectId/tasks/:taskId')
 
 router.route('/:projectId/tasks/:taskId/move')
     .put(protect, moveTask);
+
+router.post('/:projectId/tasks/:taskId/comments', protect, addTaskComment);
+router.delete('/:projectId/tasks/:taskId/comments/:commentId', protect, deleteTaskComment);
 
 module.exports = router;

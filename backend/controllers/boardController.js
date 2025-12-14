@@ -79,17 +79,14 @@ const getBoard = asyncHandler(async (req, res) => {
 
 
 const createTask = asyncHandler(async (req, res) => {
-    // LOG DEBUGGING: Cek apa isi req.body sebenarnya
-    console.log("📥 DATA DITERIMA BACKEND:", req.body);
+    // LOG: Cek data mentah yang masuk
+    console.log("📥 [CREATE TASK] Data Diterima:", req.body);
 
-    // 1. DESTRUCTURING (MEMECAH PAKET)
-    const { title, description, assignedTo, priority } = req.body;
+    const { title, description, assignedTo, priority, dueDate } = req.body; // <--- Ambil dueDate
     const projectId = req.params.projectId;
 
-    // LOG DEBUGGING: Cek apakah title sudah jadi string
-    console.log("🔍 Title hasil extract:", title, "| Tipe:", typeof title);
-
     if (!title) {
+        console.error("❌ [CREATE TASK] Error: Judul kosong");
         res.status(400);
         throw new Error('Judul tugas wajib diisi');
     }
@@ -98,6 +95,9 @@ const createTask = asyncHandler(async (req, res) => {
     if (assignedTo && assignedTo !== "" && assignedTo !== "null") {
         validAssignedTo = assignedTo;
     }
+
+    // LOG: Cek validasi assignee
+    console.log(`🔍 [CREATE TASK] Assignee: ${validAssignedTo ? validAssignedTo : 'None'}`);
 
     let firstColumn = await Column.findOne({ project: projectId }).sort('order');
     if (!firstColumn) {
@@ -108,22 +108,22 @@ const createTask = asyncHandler(async (req, res) => {
     try {
         const task = await Task.create({
             project: projectId,
-            title: title, // Pastikan ini variabel 'title' (string), bukan 'req.body'
-            description: description,
-            assignedTo: validAssignedTo, 
-            priority: priority,
+            title,
+            description,
+            assignedTo: validAssignedTo,
+            priority,
+            dueDate: dueDate || null, // <--- Simpan Due Date
             status: firstColumn.columnId,
         });
 
-        console.log("✅ Task Berhasil Dibuat:", task._id);
+        console.log("✅ [CREATE TASK] Sukses! ID:", task._id);
         res.status(201).json(task);
     } catch (error) {
-        console.error("❌ Error saat create Task:", error);
+        console.error("🔥 [CREATE TASK] DB Error:", error.message);
         res.status(500);
-        throw new Error('Gagal menyimpan tugas. Cek validasi data.');
+        throw new Error('Gagal menyimpan tugas.');
     }
 });
-
 
 const moveTask = asyncHandler(async (req, res) => {
     const { newStatus } = req.body;
@@ -162,33 +162,43 @@ const moveTask = asyncHandler(async (req, res) => {
 const updateTask = asyncHandler(async (req, res) => {
     const { taskId, projectId } = req.params;
     
-    // Cek Proyek & Otorisasi
+    // LOG: Cek request update
+    console.log(`📥 [UPDATE TASK] Request untuk Task ID: ${taskId}`);
+    console.log("   Data Update:", req.body);
+
     const project = await Project.findById(projectId);
-    if (!project) {
-        res.status(404);
-        throw new Error('Proyek tidak ditemukan');
-    }
+    if (!project) { res.status(404); throw new Error('Proyek tidak ditemukan'); }
 
     const currentUserId = req.user._id.toString();
     const isOwner = project.owner.toString() === currentUserId;
     const isMember = project.members.map(id => id.toString()).includes(currentUserId);
 
-    if (!isOwner && !isMember) {
-        res.status(403);
-        throw new Error('Akses ditolak');
+    if (!isOwner && !isMember) { 
+        console.warn(`⛔ [UPDATE TASK] Akses Ditolak User: ${currentUserId}`);
+        res.status(403); 
+        throw new Error('Akses ditolak'); 
     }
 
     const task = await Task.findById(taskId);
 
     if (task) {
+        // Update field jika ada di req.body
         task.title = req.body.title !== undefined ? req.body.title : task.title;
         task.description = req.body.description !== undefined ? req.body.description : task.description;
         task.priority = req.body.priority !== undefined ? req.body.priority : task.priority;
-        task.assignedTo = req.body.assignedTo !== undefined ? req.body.assignedTo : task.assignedTo; 
+        task.assignedTo = req.body.assignedTo !== undefined ? req.body.assignedTo : task.assignedTo;
         
+        // --- UPDATE DUE DATE ---
+        if (req.body.dueDate !== undefined) {
+            task.dueDate = req.body.dueDate;
+        }
+        // -----------------------
+
         const updatedTask = await task.save();
+        console.log("✅ [UPDATE TASK] Berhasil disimpan.");
         res.json(updatedTask);
     } else {
+        console.error("❌ [UPDATE TASK] Task tidak ditemukan di DB");
         res.status(404);
         throw new Error('Tugas tidak ditemukan');
     }

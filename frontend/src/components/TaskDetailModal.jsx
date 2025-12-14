@@ -1,22 +1,26 @@
 // frontend/src/components/TaskDetailModal.jsx
 import React, { useState, useEffect } from 'react';
 import boardService from '../api/boardService';
+import { format } from 'date-fns';
+import { id as ind } from 'date-fns/locale';
 
 const TaskDetailModal = ({ isOpen, onClose, task, projectId, onTaskUpdated, onTaskDeleted, members }) => {
-    // State lokal untuk edit mode
+    // 1. SEMUA STATE DI PALING ATAS
     const [isEditing, setIsEditing] = useState(false);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [priority, setPriority] = useState('Medium');
-    const [assignedTo, setAssignedTo] = useState(''); // State assignee
+    const [assignedTo, setAssignedTo] = useState(''); 
+    const [dueDate, setDueDate] = useState(''); // <--- SUDAH DIPINDAH KE ATAS ✅
 
-    // Isi state saat modal dibuka atau task berubah
+    // 2. USE EFFECT (DIGABUNG BIAR RAPI)
     useEffect(() => {
         if (task) {
             setTitle(task.title);
             setDescription(task.description || '');
             setPriority(task.priority || 'Medium');
-            // Cek apakah task.assignedTo itu object (populate) atau string ID
+
+            // Setup Assignee
             if (task.assignedTo && task.assignedTo._id) {
                 setAssignedTo(task.assignedTo._id);
             } else if (task.assignedTo) {
@@ -24,24 +28,39 @@ const TaskDetailModal = ({ isOpen, onClose, task, projectId, onTaskUpdated, onTa
             } else {
                 setAssignedTo('');
             }
+
+            // Setup Date (Format YYYY-MM-DD untuk input date)
+            if (task.dueDate) {
+                try {
+                    const dateObj = new Date(task.dueDate);
+                    const dateString = dateObj.toISOString().split('T')[0];
+                    setDueDate(dateString);
+                } catch (e) {
+                    setDueDate('');
+                }
+            } else {
+                setDueDate('');
+            }
         }
     }, [task, isOpen]);
 
+    // 3. BARU BOLEH RETURN NULL DI SINI
     if (!isOpen || !task) return null;
 
+    // 4. HANDLERS
     const handleSave = async () => {
         try {
             const updatedData = {
                 title,
                 description,
                 priority,
-                assignedTo: assignedTo || null // Kirim null jika kosong
+                assignedTo: assignedTo || null,
+                dueDate: dueDate || null
             };
+            console.log("🚀 [FRONTEND] Update Task Data:", updatedData);
 
             const updatedTask = await boardService.updateTask(projectId, task._id, updatedData);
             
-            // Perlu update manual assignedTo object agar UI langsung berubah tanpa refresh
-            // Karena backend mungkin hanya mengembalikan ID, kita cari object user lengkap dari props 'members'
             if (updatedTask.assignedTo) {
                 const assignedUser = members.find(m => m._id === updatedTask.assignedTo || m._id === updatedTask.assignedTo._id);
                 updatedTask.assignedTo = assignedUser; 
@@ -68,13 +87,13 @@ const TaskDetailModal = ({ isOpen, onClose, task, projectId, onTaskUpdated, onTa
         }
     };
 
-    // Ambil nama user yang ditugaskan untuk tampilan (Read Mode)
     const getAssignedUserName = () => {
         if (!assignedTo) return "Belum ada";
         const member = members.find(m => m._id === assignedTo);
         return member ? member.name : "User tidak dikenal";
     };
 
+    // 5. RENDER UI
     return (
         <div className="fixed inset-0 bg-black/80 flex justify-center items-center z-50 backdrop-blur-sm p-4">
             <div className="bg-[#383838] w-full max-w-2xl rounded-2xl shadow-2xl border border-gray-600 flex flex-col max-h-[90vh]">
@@ -139,6 +158,24 @@ const TaskDetailModal = ({ isOpen, onClose, task, projectId, onTaskUpdated, onTa
                                       'bg-blue-900/50 text-blue-300'}`}>
                                     {priority}
                                 </span>
+                            )}
+                        </div>
+
+                        {/* --- DUE DATE --- */}
+                        <div>
+                            <h3 className="text-sm uppercase font-bold text-gray-500 mb-2">Tenggat Waktu</h3>
+                            {isEditing ? (
+                                <input 
+                                    type="date" 
+                                    className="w-full bg-[#2c2c2c] text-white p-2 rounded border border-gray-600"
+                                    value={dueDate}
+                                    onChange={(e) => setDueDate(e.target.value)}
+                                />
+                            ) : (
+                                <div className="flex items-center text-gray-200 bg-[#2c2c2c] p-2 rounded">
+                                    <svg className="h-5 w-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                    {dueDate ? format(new Date(dueDate), 'dd MMMM yyyy', { locale: ind }) : <span className="italic text-gray-500 text-sm">Belum diatur</span>}
+                                </div>
                             )}
                         </div>
 

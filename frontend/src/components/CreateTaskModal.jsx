@@ -6,7 +6,8 @@ const CreateTaskModal = ({ isOpen, onClose, projectId, onTaskCreated, members })
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [priority, setPriority] = useState('Medium');
-    const [assignedTo, setAssignedTo] = useState(''); // State untuk assignee
+    const [assignedTo, setAssignedTo] = useState('');
+    const [dueDate, setDueDate] = useState(''); // <--- STATE BARU
     const [loading, setLoading] = useState(false);
 
     if (!isOpen) return null;
@@ -14,15 +15,19 @@ const CreateTaskModal = ({ isOpen, onClose, projectId, onTaskCreated, members })
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+
+        const taskData = {
+            title,
+            description,
+            priority,
+            assignedTo: assignedTo || null,
+            dueDate: dueDate || null // <--- Kirim Tanggal
+        };
+
+        // LOG: Cek data sebelum dikirim ke API
+        console.log("🚀 [FRONTEND] Mengirim Data Task Baru:", taskData);
+
         try {
-            // Kirim assignedTo hanya jika ada isinya
-            const taskData = {
-                title,
-                description,
-                priority,
-                assignedTo: assignedTo || null 
-            };
-            
             const newTask = await boardService.createTask(projectId, taskData);
             onTaskCreated(newTask);
             
@@ -31,9 +36,10 @@ const CreateTaskModal = ({ isOpen, onClose, projectId, onTaskCreated, members })
             setDescription('');
             setPriority('Medium');
             setAssignedTo('');
+            setDueDate(''); // Reset tanggal
             setLoading(false);
         } catch (error) {
-            console.error("Gagal membuat tugas:", error);
+            console.error("💥 [FRONTEND] Gagal create task:", error);
             setLoading(false);
             alert('Gagal membuat tugas');
         }
@@ -81,6 +87,17 @@ const CreateTaskModal = ({ isOpen, onClose, projectId, onTaskCreated, members })
                             <option value="Medium">Medium</option>
                             <option value="High">High</option>
                         </select>
+                    </div>
+                    
+                    {/* --- INPUT BARU: TANGGAL DEADLINE --- */}
+                    <div className="mb-4">
+                        <label className="block text-gray-400 text-sm font-semibold mb-2">Tenggat Waktu (Deadline)</label>
+                        <input 
+                            type="date" 
+                            className="w-full p-2 rounded bg-[#2c2c2c] border border-gray-600 text-white focus:outline-none focus:border-teal-500 appearance-none"
+                            value={dueDate}
+                            onChange={(e) => setDueDate(e.target.value)}
+                        />
                     </div>
 
                     {/* --- INPUT BARU: ASSIGNED TO --- */}

@@ -33,6 +33,11 @@ const taskSchema = mongoose.Schema(
             enum: ['Low', 'Medium', 'High', 'Critical'],
             default: 'Medium',
         },
+        dueDate: { 
+        type: Date, 
+        default: null
+        },
+        
     },
     {
         timestamps: true,

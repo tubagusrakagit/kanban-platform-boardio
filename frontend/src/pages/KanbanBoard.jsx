@@ -7,6 +7,7 @@ import CreateTaskModal from '../components/CreateTaskModal';
 import TaskDetailModal from '../components/TaskDetailModal'; 
 import AddMemberModal from '../components/AddMemberModal'; // <-- 1. IMPORT MODAL
 import { addRecentBoard } from '../utils/recentBoards';
+import { format, isPast, isToday } from 'date-fns';
 
 // Fungsi bantuan untuk mengelompokkan tasks berdasarkan kolom
 const groupTasksByStatus = (tasks, columns) => {
@@ -280,6 +281,20 @@ const KanbanBoard = () => {
                                                         onClick={() => openTaskDetail(task)} 
                                                     >
                                                         <h3 className="font-medium text-gray-100 truncate text-sm">{task.title}</h3>
+                                                        {task.dueDate && (
+                                                            <div className={`mt-2 text-xs flex items-center font-medium
+                                                                ${isPast(new Date(task.dueDate)) && !isToday(new Date(task.dueDate)) 
+                                                                    ? 'text-red-400' // Merah jika lewat deadline
+                                                                    : 'text-gray-400' // Abu jika aman
+                                                                }
+                                                            `}>
+                                                                <svg className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                </svg>
+                                                                {/* Format tanggal: "14 Dec" */}
+                                                                {format(new Date(task.dueDate), 'dd MMM')} 
+                                                            </div>
+                                                        )}
                                                         <div className="mt-2 flex items-center">
                                                             <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded 
                                                                 ${task.priority === 'High' ? 'bg-red-900/50 text-red-300' : 

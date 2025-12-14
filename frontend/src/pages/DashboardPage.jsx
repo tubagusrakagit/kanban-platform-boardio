@@ -74,7 +74,7 @@ const DashboardPage = () => {
 
     if (error) {
         return (
-            <div className="ml-64 flex justify-center p-10 mt-10 bg-[#2c2c2c] min-h-screen">
+            <div className="flex justify-center p-10 mt-10 bg-[#2c2c2c] min-h-screen">
                 <div className="max-w-lg w-full bg-[#383838] border border-red-500/50 text-red-400 px-4 py-3 rounded-xl shadow-lg text-center">
                     <p className="font-semibold text-lg">{error}</p>
                 </div>
@@ -84,7 +84,7 @@ const DashboardPage = () => {
 
     return (
         // CONTAINER UTAMA: Background #2c2c2c, Teks Putih
-        <div className="ml-64 p-8 min-h-screen bg-[#2c2c2c] text-gray-100 font-sans">
+        <div className="p-8 min-h-screen bg-[#2c2c2c] text-gray-100 font-sans">
             
             <CreateProjectModal 
                 isOpen={isCreateModalOpen}

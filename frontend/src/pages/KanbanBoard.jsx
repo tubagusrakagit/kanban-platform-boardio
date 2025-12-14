@@ -147,7 +147,7 @@ const KanbanBoard = () => {
     // RENDERING BOARD
     // ----------------------------------------------------
     return (
-        <div className="ml-64 p-6 bg-[#2c2c2c] min-h-screen font-sans text-gray-100">
+        <div className="p-6 bg-[#2c2c2c] min-h-screen font-sans text-gray-100">
             
             {/* --- MODALS --- */}
             <CreateTaskModal 

@@ -142,7 +142,7 @@ const KanbanBoard = () => {
     
     // Cek apakah user adalah owner
     const isOwner = boardData.owner && userInfo && boardData.owner._id === userInfo._id;
-
+    const allMembers = boardData ? [boardData.owner, ...boardData.members] : [];
     // ----------------------------------------------------
     // RENDERING BOARD
     // ----------------------------------------------------
@@ -155,6 +155,7 @@ const KanbanBoard = () => {
                 onClose={() => setIsTaskModalOpen(false)}
                 projectId={projectId}
                 onTaskCreated={handleTaskCreated}
+                members={allMembers}
             />
             
             <TaskDetailModal 
@@ -164,6 +165,7 @@ const KanbanBoard = () => {
                 projectId={projectId}
                 onTaskUpdated={handleTaskUpdated}
                 onTaskDeleted={handleTaskDeleted}
+                members={allMembers}
             />
 
             {/* 3. Render Modal Add Member (Hanya dirender jika data ada) */}

@@ -22,8 +22,6 @@ const defaultColumnsData = [
 
 const importData = async () => {
     try {
-        // 1. BERSIHKAN DATABASE LAMA
-        // Hapus index lama secara paksa untuk menghindari error E11000
         await mongoose.connection.collection('columns').drop().catch(() => {});
         
         await Task.deleteMany();
@@ -33,7 +31,7 @@ const importData = async () => {
 
         console.log('Data Lama Dihapus...'.red.inverse);
 
-        // 2. BUAT MULTIPLE USERS
+        
         const user1 = await User.create({
             name: 'Admin Owner',
             email: 'admin@example.com',
@@ -48,27 +46,25 @@ const importData = async () => {
 
         console.log(`2 Users Dibuat: admin@example.com & dev@example.com`.green.inverse);
 
-        // Array untuk menyimpan semua proyek yang dibuat
+       
         const createdProjects = [];
 
-        // 3. BUAT 10 PROJECT
         for (let i = 1; i <= PROJECT_COUNT; i++) {
             const project = await Project.create({
                 name: `Proyek ${i} - ${i % 2 === 0 ? 'Internal' : 'Client'}`,
                 description: `Ini adalah deskripsi untuk Proyek nomor ${i}. Digunakan untuk pengujian tampilan dashboard dengan data banyak.`,
-                owner: user1._id, // User1 sebagai Owner utama
-                members: i % 3 === 0 ? [user2._id] : [], // Tambahkan user2 sebagai member pada proyek kelipatan 3
+                owner: user1._id, 
+                members: i % 3 === 0 ? [user2._id] : [], 
             });
             createdProjects.push(project);
 
-            // 4. BUAT KOLOM UNTUK PROYEK INI
             const projectColumnsData = defaultColumnsData.map(col => ({
                 ...col,
                 project: project._id,
             }));
             await Column.insertMany(projectColumnsData);
             
-            // 5. BUAT TASKS DUMMY (3 tasks per proyek)
+            
             await Task.insertMany([
                 {
                     title: `[P${i}] Kebutuhan Dasar`,

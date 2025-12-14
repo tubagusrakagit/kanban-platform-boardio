@@ -79,33 +79,49 @@ const getBoard = asyncHandler(async (req, res) => {
 
 
 const createTask = asyncHandler(async (req, res) => {
+    // LOG DEBUGGING: Cek apa isi req.body sebenarnya
+    console.log("📥 DATA DITERIMA BACKEND:", req.body);
+
+    // 1. DESTRUCTURING (MEMECAH PAKET)
     const { title, description, assignedTo, priority } = req.body;
     const projectId = req.params.projectId;
 
+    // LOG DEBUGGING: Cek apakah title sudah jadi string
+    console.log("🔍 Title hasil extract:", title, "| Tipe:", typeof title);
+
     if (!title) {
         res.status(400);
-        throw new Error('Judul tugas wajib diisi'); // <-- KOREKSI: Hapus 'new new'
+        throw new Error('Judul tugas wajib diisi');
     }
 
-    // Pastikan kolom ada sebelum membuat tugas
+    let validAssignedTo = null;
+    if (assignedTo && assignedTo !== "" && assignedTo !== "null") {
+        validAssignedTo = assignedTo;
+    }
+
     let firstColumn = await Column.findOne({ project: projectId }).sort('order');
-    
-    // Fallback jika kolom entah kenapa hilang
     if (!firstColumn) {
         await createDefaultColumns(projectId);
         firstColumn = await Column.findOne({ project: projectId }).sort('order');
     }
     
-    const task = await Task.create({
-        project: projectId,
-        title,
-        description,
-        assignedTo,
-        priority,
-        status: firstColumn.columnId,
-    });
+    try {
+        const task = await Task.create({
+            project: projectId,
+            title: title, // Pastikan ini variabel 'title' (string), bukan 'req.body'
+            description: description,
+            assignedTo: validAssignedTo, 
+            priority: priority,
+            status: firstColumn.columnId,
+        });
 
-    res.status(201).json(task);
+        console.log("✅ Task Berhasil Dibuat:", task._id);
+        res.status(201).json(task);
+    } catch (error) {
+        console.error("❌ Error saat create Task:", error);
+        res.status(500);
+        throw new Error('Gagal menyimpan tugas. Cek validasi data.');
+    }
 });
 
 

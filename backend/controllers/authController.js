@@ -3,9 +3,7 @@ const asyncHandler = require('express-async-handler'); // Helper untuk error han
 const User = require('../models/User');
 const generateToken = require('../utils/generateToken');
 
-// @desc    Daftarkan pengguna baru
-// @route   POST /api/auth/register
-// @access  Public
+
 const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password, role } = req.body;
 
@@ -19,7 +17,7 @@ const registerUser = asyncHandler(async (req, res) => {
   const user = await User.create({
     name,
     email,
-    password, // Password akan di-hash oleh middleware User.js sebelum disimpan
+    password, 
     role,
   });
 
@@ -37,9 +35,7 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Autentikasi pengguna & dapatkan token
-// @route   POST /api/auth/login
-// @access  Public
+
 const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 

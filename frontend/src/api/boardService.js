@@ -24,7 +24,6 @@ const getAuthHeaders = () => {
 const getBoardData = async (projectId) => {
     try {
         const response = await axios.get(`${API_URL}/${projectId}`, getAuthHeaders());
-        // Response berisi { project: name, columns: [], tasks: [] }
         return response.data; 
     } catch (error) {
         throw error;
@@ -32,17 +31,17 @@ const getBoardData = async (projectId) => {
 };
 
 // =======================================================
-// FUNGSI 2: MEMBUAT TASK BARU
+// FUNGSI 2: MEMBUAT TASK BARU (FIXED)
 // =======================================================
-const createTask = async (projectId, title, description, priority) => {
+// UBAH DISINI: Menerima 'taskData' sebagai object utuh
+const createTask = async (projectId, taskData) => {
     try {
-        const taskData = { title, description, priority };
+        // Langsung kirim taskData apa adanya (berisi title, description, priority, assignedTo)
         const response = await axios.post(
             `${API_URL}/${projectId}/tasks`, 
             taskData, 
             getAuthHeaders()
         );
-        // Response berisi task baru
         return response.data; 
     } catch (error) {
         throw error;
@@ -54,19 +53,16 @@ const createTask = async (projectId, title, description, priority) => {
 // =======================================================
 const moveTask = async (projectId, taskId, newStatus) => {
     try {
-        // PERHATIAN: Pastikan URL ini sesuai dengan routes/boardRoutes.js
         const response = await axios.put(
-            `${API_URL}/${projectId}/tasks/${taskId}/move`, // <-- PATH HARUS MATCH
+            `${API_URL}/${projectId}/tasks/${taskId}/move`, 
             { newStatus }, 
             getAuthHeaders()
         );
-        // Response berisi task yang sudah diupdate
         return response.data; 
     } catch (error) {
         throw error;
     }
 };
-
 
 // =======================================================
 // FUNGSI 4: UPDATE TASK
@@ -99,13 +95,12 @@ const deleteTask = async (projectId, taskId) => {
     }
 };
 
-
 const boardService = {
     getBoardData,
     createTask,
     moveTask,
-    updateTask, // <-- REGISTRASI BARU WAJIB
-    deleteTask, // <-- REGISTRASI BARU WAJIB
+    updateTask, 
+    deleteTask, 
 };
 
 export default boardService;

@@ -46,7 +46,6 @@ const createProject = async (name, description) => {
     try {
         const projectData = { name, description };
         
-        // Panggil endpoint POST /api/projects dengan header otorisasi
         const response = await axios.post(
             API_URL, 
             projectData, 

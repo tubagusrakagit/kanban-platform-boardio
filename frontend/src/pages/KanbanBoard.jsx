@@ -298,13 +298,27 @@ const KanbanBoard = () => {
                                                                 {format(new Date(task.dueDate), 'dd MMM')} 
                                                             </div>
                                                         )}
-                                                        <div className="mt-2 flex items-center">
+                                                        {/* --- BARIS BAWAH: PRIORITAS & ASSIGNEE --- */}
+                                                        <div className="mt-3 flex items-center justify-between">
+                                                            
+                                                            {/* 1. BADGE PRIORITAS (Kiri) */}
                                                             <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded 
                                                                 ${task.priority === 'High' ? 'bg-red-900/50 text-red-300' : 
-                                                                  task.priority === 'Medium' ? 'bg-yellow-900/50 text-yellow-300' : 
-                                                                  'bg-blue-900/50 text-blue-300'}`}>
+                                                                task.priority === 'Medium' ? 'bg-yellow-900/50 text-yellow-300' : 
+                                                                'bg-blue-900/50 text-blue-300'}`}>
                                                                 {task.priority}
                                                             </span>
+
+                                                            {/* 2. AVATAR ASSIGNEE (Kanan) - BARU */}
+                                                            {task.assignedTo && (
+                                                                <div 
+                                                                    className="h-6 w-6 rounded-full bg-teal-600 flex items-center justify-center text-[10px] font-bold text-white ring-1 ring-[#383838] shadow-sm"
+                                                                    title={`Assigned to: ${task.assignedTo.name}`}
+                                                                >
+                                                                    {/* Ambil huruf pertama nama user */}
+                                                                    {task.assignedTo.name ? task.assignedTo.name.charAt(0).toUpperCase() : '?'}
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 )}

@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage'; // Asumsi Anda punya ini
 import DashboardPage from './pages/DashboardPage';
 import KanbanBoard from './pages/KanbanBoard';
+import JoinProjectPage from './pages/JoinProjectPage';
 
 const PrivateRoute = ({ children }) => {
   const userInfo = localStorage.getItem('userInfo');
@@ -49,6 +50,14 @@ function App() {
                 </PrivateRoute>
               } 
             />
+            <Route 
+              path="/invite/:token" 
+              element={
+                  <PrivateRoute>
+                      <JoinProjectPage />
+                  </PrivateRoute>
+    } 
+/>
           </Routes>
         </main>
       </div>

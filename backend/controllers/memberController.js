@@ -48,13 +48,15 @@ const addMemberToProject = asyncHandler(async (req, res) => {
     }
 
     // Cek apakah user sudah menjadi member atau owner
-    if (project.members.includes(userId) || project.owner.equals(userId)) {
-        res.status(400);
-        throw new Error('Pengguna sudah menjadi anggota proyek ini.');
-    }
+    const isMemberExists = project.members.some(member => member.user.toString() === userId);
+    
+    if (isMemberExists || project.owner.equals(userId)) { 
+        res.status(400);
+        throw new Error('Pengguna sudah menjadi anggota proyek ini.');
+    }
 
     // Tambahkan user ke array members
-    project.members.push(userId);
+   project.members.push({ user: userId, role: 'Editor' });
     const updatedProject = await project.save();
 
     res.json({ message: 'Anggota berhasil ditambahkan', members: updatedProject.members });

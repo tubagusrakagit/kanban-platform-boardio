@@ -24,7 +24,7 @@ const getAuthHeaders = () => {
 };
 
 // =======================================================
-// FUNGSI 1: MENGAMBIL SEMUA PROYEK USER
+// FUNGSI : MENGAMBIL SEMUA PROYEK USER
 // =======================================================
 const getAllProjects = async () => {
     try {
@@ -60,10 +60,65 @@ const createProject = async (name, description) => {
     }
 };
 
+// =======================================================
+// FUNGSI : GENERATE TOKEN UNDANGAN
+// =======================================================
+const generateInviteToken = async (projectId) => {
+    try {
+        const response = await axios.put(
+            `${API_URL}/${projectId}/generate-invite`, 
+            {}, // Body kosong
+            getAuthHeaders()
+        );
+        // Response akan berisi { token: 'xyz123', message: '...' }
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+// =======================================================
+// FUNGSI : JOIN VIA TOKEN LINK
+// =======================================================
+const joinProjectByToken = async (token) => {
+    try {
+        // Karena ini route POST, kita kirim body kosong saja
+        const response = await axios.post(
+            `${API_URL}/join/${token}`, 
+            {}, 
+            getAuthHeaders()
+        );
+        // Response akan berisi { projectId, projectName, message }
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+// =======================================================
+// FUNGSI BARU 3: KICK MEMBER
+// =======================================================
+const kickMember = async (projectId, memberId) => {
+    try {
+        // Menggunakan PUT karena kita memodifikasi resource (project.members)
+        const response = await axios.put(
+            `${API_URL}/${projectId}/kick/${memberId}`, 
+            {}, 
+            getAuthHeaders()
+        );
+        // Response akan berisi { message, members }
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
 
 const projectService = {
     getAllProjects,
     createProject,
+    generateInviteToken,
+    joinProjectByToken,
+    kickMember,
 };
 
 export default projectService;

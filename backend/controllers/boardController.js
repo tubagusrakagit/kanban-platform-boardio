@@ -26,7 +26,7 @@ const getBoard = asyncHandler(async (req, res) => {
         // 1. Ambil Proyek dengan Populate
         const project = await Project.findById(projectId)
             .populate('owner', 'name email')
-            .populate('members', 'name email');
+            .populate('members.user', 'name email');
 
         if (!project) {
             res.status(404);
@@ -40,7 +40,9 @@ const getBoard = asyncHandler(async (req, res) => {
         const isOwner = project.owner && project.owner._id.toString() === currentUserId;
         
         // Cek Member (Safe Check)
-        const isMember = project.members && project.members.some(member => member._id.toString() === currentUserId);
+        const isMember = project.members && project.members.some(member => 
+            member.user && member.user._id.toString() === currentUserId 
+        );
 
         if (!isOwner && !isMember) {
             res.status(403);
@@ -139,8 +141,9 @@ const moveTask = asyncHandler(async (req, res) => {
     // Otorisasi Aman
     const currentUserId = req.user._id.toString();
     const isOwner = project.owner.toString() === currentUserId; // Owner belum dipopulate di sini, jadi langsung string
-    const isMember = project.members.map(id => id.toString()).includes(currentUserId);
-
+    const isMember = project.members.some(member => 
+        member.user.toString() === currentUserId
+    );
     if (!isOwner && !isMember) {
         res.status(403);
         throw new Error('Akses ditolak: Anda bukan anggota proyek ini.');
@@ -171,7 +174,9 @@ const updateTask = asyncHandler(async (req, res) => {
 
     const currentUserId = req.user._id.toString();
     const isOwner = project.owner.toString() === currentUserId;
-    const isMember = project.members.map(id => id.toString()).includes(currentUserId);
+    const isMember = project.members.some(member => 
+        member.user.toString() === currentUserId
+    );
 
     if (!isOwner && !isMember) { 
         console.warn(`⛔ [UPDATE TASK] Akses Ditolak User: ${currentUserId}`);
@@ -216,7 +221,10 @@ const deleteTask = asyncHandler(async (req, res) => {
 
     const currentUserId = req.user._id.toString();
     const isOwner = project.owner.toString() === currentUserId;
-    const isMember = project.members.map(id => id.toString()).includes(currentUserId);
+    const isMember = project.members.some(member => 
+        // Akses member.user (yang berisi ID String/ObjectID User)
+        member.user.toString() === currentUserId
+    );
 
     if (!isOwner && !isMember) {
         res.status(403);

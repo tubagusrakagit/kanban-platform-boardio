@@ -5,9 +5,10 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import boardService from '../api/boardService';
 import CreateTaskModal from '../components/CreateTaskModal';
 import TaskDetailModal from '../components/TaskDetailModal'; 
-import AddMemberModal from '../components/AddMemberModal'; // <-- 1. IMPORT MODAL
+import InviteSettingsModal from '../components/InviteSettingsModal'; // <-- 1. IMPORT MODAL
 import { addRecentBoard } from '../utils/recentBoards';
 import { format, isPast, isToday } from 'date-fns';
+import Toast from '../components/Toast';
 
 // Fungsi bantuan untuk mengelompokkan tasks berdasarkan kolom
 const groupTasksByStatus = (tasks, columns) => {
@@ -25,14 +26,25 @@ const KanbanBoard = () => {
 
     // State Modals
     const [isTaskModalOpen, setIsTaskModalOpen] = useState(false); 
-    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false); 
-    const [isMemberModalOpen, setIsMemberModalOpen] = useState(false); // <-- 2. STATE MEMBER MODAL
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [isInviteSettingsOpen, setIsInviteSettingsOpen] = useState(false); 
     
     const [selectedTask, setSelectedTask] = useState(null); 
     const [boardData, setBoardData] = useState(null); 
     const [tasksByColumn, setTasksByColumn] = useState({}); 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    // --- TOAST NOTIFICATION STATE ---
+    const [notification, setNotification] = useState(null); 
+
+    const triggerNotification = (message, type = 'success') => {
+        setNotification({ message, type });
+        // Hapus notifikasi setelah 3 detik
+        setTimeout(() => {
+            setNotification(null);
+        }, 3000); 
+    };
 
     // ----------------------------------------------------
     // Handlers
@@ -147,19 +159,66 @@ const KanbanBoard = () => {
     // Cek apakah user adalah owner
     const isOwner = boardData.owner && userInfo && boardData.owner._id === userInfo._id;
     const allMembers = boardData ? [boardData.owner, ...boardData.members] : [];
+    
+    const currentUserId = userInfo?._id; 
+
+    let uniqueMembersMap = {}; // Map untuk melacak ID user yang sudah ditambahkan
+
+    if (boardData?.members) {
+        // Memastikan setiap user hanya muncul sekali di daftar
+        uniqueMembersMap = boardData.members.reduce((acc, current) => {
+            // Gunakan ID user (current.user._id) sebagai kunci unik
+            const userId = current.user._id.toString(); 
+            
+            // Hanya tambahkan jika user belum ada di accumulator
+            if (!acc[userId]) {
+                acc[userId] = current;
+            }
+            return acc;
+        }, {});
+    }
+
+    // Array members yang sudah unik (nilai dari map)
+    const uniqueBoardMembers = Object.values(uniqueMembersMap);
+
+
+    // --- MENGHITUNG DAN MENYIAPKAN DAFTAR UNTUK RENDERING ---
+
+    // 1. Filter array members: Kecualikan entry Owner agar tidak terjadi duplikasi hitungan/rendering
+    let filteredMembers = [];
+    if (boardData?.owner) {
+        filteredMembers = uniqueBoardMembers.filter(member => 
+            member.user._id.toString() !== boardData.owner._id.toString()
+        );
+    }
+
+    // 2. Daftar lengkap (Owner tunggal + Anggota unik non-owner)
+    const allUniqueMembersList = boardData?.owner 
+        ? [boardData.owner, ...filteredMembers.map(m => m.user)] 
+        : [];
+
+    const allUniqueMembers = boardData?.owner ? [boardData.owner, ...filteredMembers.map(m => m.user)] : [];
+    
+    
     // ----------------------------------------------------
     // RENDERING BOARD
     // ----------------------------------------------------
     return (
         <div className="p-6 bg-[#2c2c2c] min-h-screen font-sans text-gray-100">
-            
+            {/* --- TOAST COMPONENT --- */}
+            {notification && (
+                <Toast 
+                    message={notification.message} 
+                    type={notification.type} 
+                />
+            )}
             {/* --- MODALS --- */}
             <CreateTaskModal 
                 isOpen={isTaskModalOpen}
                 onClose={() => setIsTaskModalOpen(false)}
                 projectId={projectId}
                 onTaskCreated={handleTaskCreated}
-                members={allMembers}
+                members={allUniqueMembersList}
             />
             
             <TaskDetailModal 
@@ -169,16 +228,18 @@ const KanbanBoard = () => {
                 projectId={projectId}
                 onTaskUpdated={handleTaskUpdated}
                 onTaskDeleted={handleTaskDeleted}
-                members={allMembers}
+                members={allUniqueMembersList}
             />
 
             {/* 3. Render Modal Add Member (Hanya dirender jika data ada) */}
-            <AddMemberModal 
-                isVisible={isMemberModalOpen}
-                onClose={() => setIsMemberModalOpen(false)}
-                project={boardData} // Kirim data project lengkap
-                onMemberAdded={handleMemberAdded}
-            />
+            <InviteSettingsModal 
+            isVisible={isInviteSettingsOpen}
+            onClose={() => setIsInviteSettingsOpen(false)}
+            project={boardData}
+            projectId={projectId}
+            onRefresh={fetchBoard}
+            onNotify={triggerNotification}
+        />
 
             {/* KONTEN HEADER */}
             <div className="flex items-start justify-between mb-6 pb-4 border-b border-gray-700"> 
@@ -207,34 +268,36 @@ const KanbanBoard = () => {
                                     </span>
                                 )}
 
-                                {/* Members */}
-                                {boardData.members && boardData.members.map((member) => (
-                                    <span 
-                                        key={member._id}
-                                        className="h-8 w-8 rounded-full bg-gray-500 flex items-center justify-center text-white text-xs font-bold ring-2 ring-[#2c2c2c] cursor-pointer"
-                                        title={`Member: ${member.name}`}
-                                    >
-                                        {member.name.substring(0, 1)}
-                                    </span>
+                                {/* Members: Gunakan array yang sudah difilter untuk menghindari duplikasi Owner */}
+                                {filteredMembers.map((member) => (
+                                    member.user && ( // Pastikan objek user ada
+                                        <span 
+                                            // Key harus di elemen terluar dalam map.
+                                            key={member.user._id} 
+                                            className="h-8 w-8 rounded-full bg-gray-500 flex items-center justify-center text-white text-xs font-bold ring-2 ring-[#2c2c2c] cursor-pointer"
+                                            title={`Member: ${member.user.name}`} 
+                                        >
+                                            {member.user.name.substring(0, 1)}
+                                        </span>
+                                    )
                                 ))}
                             </div>
 
                             {/* 4. TOMBOL TAMBAH ANGGOTA (HANYA OWNER) */}
                             {isOwner && (
-                                <button
-                                    onClick={() => setIsMemberModalOpen(true)}
-                                    className="h-8 w-8 flex items-center justify-center rounded-full bg-teal-600 hover:bg-teal-500 text-white shadow-lg transition duration-200 mr-3"
-                                    title="Tambah Anggota Tim"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
-                                    </svg>
-                                </button>
-                            )}
+                            <button
+                                onClick={() => setIsInviteSettingsOpen(true)} // <--- Panggil Modal Baru
+                                className="h-8 w-8 flex items-center justify-center rounded-full bg-teal-600 hover:bg-teal-500 text-white shadow-lg transition duration-200 mr-3"
+                                title="Kelola Link Undangan"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" /></svg>
+                            </button>
+                        )}
 
                             <span className="text-xs self-center text-gray-500 ml-1">
-                                {1 + (boardData.members?.length || 0)} Orang
-                            </span>
+                            {/* Hitung: Owner (1) + Jumlah anggota non-owner yang sudah difilter */}
+                            {1 + (filteredMembers.length || 0)} Orang 
+                        </span>
                         </div>
                     </div>
                 </div>

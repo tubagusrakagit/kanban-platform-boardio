@@ -15,13 +15,22 @@ const ProjectSchema = new mongoose.Schema({
     ref: 'User', 
     required: true,
   },
-  members: [
-    {
-      // Daftar anggota tim yang terlibat dalam proyek
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+  members: [{
+        user: { 
+            type: mongoose.Schema.Types.ObjectId, 
+            ref: 'User', 
+            required: true 
+        },
+        role: { 
+            type: String, 
+            enum: ['Owner', 'Admin', 'Editor', 'Viewer'], 
+            default: 'Editor' 
+        }
+    }],
+  inviteToken: {
+        type: String,
+        default: null,
     },
-  ],
 }, { timestamps: true });
 
 module.exports = mongoose.model('Project', ProjectSchema);
